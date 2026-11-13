@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Standard_Mode_Two 回执 Schema（附录 B）",
+  "description": "执行层上行协议：结构化的单条回执。五字段必带；drift_hint 与 artifact_path 可选。",
+  "type": "object",
+  "required": ["round_id", "domain", "status", "data", "confidence"],
+  "properties": {
+    "round_id": { "type": "integer", "description": "全局递增，任务书中的 round_id，讨论层锚定凭证" },
+    "domain": { "enum": ["browser", "windows", "static"], "description": "执行域标识" },
+    "status": {
+      "enum": ["success", "partial_success", "failed", "dead_end"],
+      "description": "dead_end 是合法状态不是失败——触发换基底，进软退出计数"
+    },
+    "data": {
+      "type": "string",
+      "maxLength": 3000,
+      "description": "砍量后的原始数据。>3000 字先落盘，此处只留路径+摘要（artifact_path）"
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "drift_hint": {
+      "type": "string",
+      "description": "finishReason / likelyDrift 核查结果。drift 回执不计入软退出'一致报错'（那是模型漂移，走 T4 降级）"
+    },
+    "artifact_path": { "type": "string", "description": "降载通道：原始数据落盘路径" },
+    "node_id": { "type": "string", "description": "探索节点锚；E 相位/探索类回执必带" },
+    "side_effects": { "type": "array", "items": { "type": "string" }, "description": "副作用声明：写文件/发请求/hook 安装…；空数组=无副作用；所有执行回执必带" },
+    "vault_refs": { "type": "array", "items": { "type": "string" }, "description": "引用的 vault 句柄（vault:<ref>）；阶段 B 起启用" }
+  }
+}
